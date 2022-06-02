@@ -1,6 +1,6 @@
 import numpy as np
-# import imageio
-import imageio.v2 as imageio
+import imageio
+# import imageio.v2 as imageio
 import os
 from PIL import Image
 from torchvision import transforms
@@ -15,7 +15,8 @@ class FGVC_aircraft(Dataset):
                  data_len: int = None):
         super(FGVC_aircraft, self).__init__()
         assert root is not None
-        self.interpolation = transforms.InterpolationMode.BILINEAR
+        # self.interpolation = transforms.InterpolationMode.BILINEAR
+        self.interpolation = Image.BILINEAR
         self.input_size = input_size
         self.root = root
         self.is_train = is_train
@@ -84,10 +85,10 @@ class FGVC_aircraft_loader(DataLoader):
                                  is_train=True)
         trainloader = torch.utils.data.DataLoader(trainset, 
                                                  batch_size=self.batch_size,
-                                                 shuffle=True, num_workers=8, drop_last=False)
+                                                 shuffle=True, num_workers=8, drop_last=True)
         testset = FGVC_aircraft(input_size=self.input_size, root=self.root_dir, is_train=False)
         testloader = torch.utils.data.DataLoader(testset, batch_size=self.batch_size,
-                                                 shuffle=False, num_workers=8, drop_last=False)
+                                                 shuffle=False, num_workers=8, drop_last=True)
 
         return trainloader, testloader
 
