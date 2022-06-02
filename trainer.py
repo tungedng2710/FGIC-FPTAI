@@ -1,6 +1,7 @@
 import os
 import glob
 import torch
+import torch.nn as nn
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from config import max_checkpoint_num, proposalN, eval_trainset, save_checkpoint
@@ -118,3 +119,76 @@ def train_mmal(model,
                 idx_list = [int(name.replace('epoch', '').replace('.pth', '')) for name in checkpoint_list]
                 min_idx = min(idx_list)
                 os.remove(os.path.join(save_path, 'epoch' + str(min_idx) + '.pth'))
+
+def train_mainstream_model(model,
+                           trainloader,
+                           testloader,
+                           criterion,
+                           optimizer,
+                           scheduler,
+                           cuda_id,
+                           num_epochs):
+    best_acc = -1
+    train_loss = 0.0
+    device = torch.device("cuda:"+str(cuda_id) if torch.cuda.is_available() else "cpu")
+    for epoch in range(num_epochs):
+        model.train()
+        print('Epoch ', epoch+1)
+        print('Training...')
+        lr = next(iter(optimizer.param_groups))['lr']
+        for i, data in enumerate(tqdm(trainloader)):
+            images, labels = data
+            images, labels = images.to(device), labels.to(device)
+            logits = model(images)
+            loss = criterion(logits, labels)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item()
+        scheduler.step()
+
+        acc = []
+        val_loss = 0.0
+        print("Testing...")
+        for idx, (images, labels) in enumerate(tqdm(testloader)):
+            loss, correct = test(model, criterion, images, labels, device)
+            val_loss += loss.item()
+            acc.append(correct)
+
+        test_accuracy = sum(acc)/len(acc)
+        if test_accuracy>=best_acc:
+            best_acc = test_accuracy
+        else:
+            pass
+        train_loss = train_loss / len(trainloader)
+        val_loss = val_loss / len(testloader)
+        print("Epoch:{epoch} |train loss: {train_loss} |val loss: {val_loss} |val accuracy: {cur_acc} |best accuracy: {best_acc}"\
+                                                    .format(epoch=epoch+1, 
+                                                    train_loss=round(train_loss, 4), 
+                                                    val_loss=round(val_loss, 4),
+                                                    cur_acc=round(test_accuracy.item(), 4),
+                                                    best_acc=round(best_acc.item(), 4)))
+
+def test(model, criterion, X_val, y_val, device):
+    X_val = X_val.to(device)
+    y_val = y_val.to(device)
+    model.eval()
+    with torch.no_grad():
+        logits = model(X_val)
+        loss = criterion(logits, y_val)
+        y_probs = torch.softmax(logits, dim = 1) 
+        correct = (torch.argmax(y_probs, dim = 1) == y_val).type(torch.FloatTensor)
+    return loss, correct.mean()
+
+def data_parallel(module, input, device_ids, output_device=None):
+    if not device_ids:
+        return module(input)
+
+    if output_device is None:
+        output_device = device_ids[0]
+
+    replicas = nn.parallel.replicate(module, device_ids)
+    inputs = nn.parallel.scatter(input, device_ids)
+    replicas = replicas[:len(inputs)]
+    outputs = nn.parallel.parallel_apply(replicas, inputs)
+    return nn.parallel.gather(outputs, output_device)

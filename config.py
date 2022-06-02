@@ -4,9 +4,9 @@ import numpy as np
 
 cuda_id = 2
 
-save_checkpoint = True
-loss_function_name = "CrossEntropyLoss"
-model_name = 'MMAL'
+save_checkpoint = False
+loss_function_name = "ArcFace"
+model_name = 'Mainstream'
 stride = 32
 channels = 2048
 input_size = 448
@@ -20,7 +20,7 @@ num_epochs = 40
 
 # Optimizer config
 optim_name = "SGD"
-init_lr = 0.001
+init_lr = 0.01
 lr_milestones = [60, 100]
 lr_decay_rate = 0.1
 weight_decay = 1e-4
@@ -36,7 +36,7 @@ ratios = [[6, 6], [5, 7], [7, 5],
             [8, 8], [6, 10], [10, 6], [7, 9], [9, 7],
             [10, 10], [9, 11], [11, 9], [8, 12], [12, 8]]
 
-model_path = './checkpoint/aircraft'      # pth save path
+model_path = './weights'      # pth save path
 root_dir = '/home/ubuntu/tungn197/AirCraft_Cls/fgvc-aircraft-2013b'  # dataset path
 num_classes = 100
 

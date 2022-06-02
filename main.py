@@ -6,14 +6,16 @@ import shutil
 import time
 from config import *
 
-from trainer import train_mmal
-from models.MMALNet.model import DEVICE, MainNet
+from trainer import train_mmal, train_mainstream_model
+from models.MMALNet.model import MainNet
+from models.mainstream_model import MainStreamModel, DistributedMainStreamModel
 
 from utils.dataset import FGVC_aircraft_loader
 from utils.losses import get_loss
 from utils.optimizers import SAM, Lamb
 
 import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0, 1, 2"
 
 def train():
     device = torch.device("cuda:"+str(cuda_id) if torch.cuda.is_available() else "cpu")
@@ -55,17 +57,28 @@ def train():
     time_str = time.strftime("%Y%m%d-%H%M%S")
     shutil.copy('./config.py', os.path.join(save_path, "{}config.py".format(time_str)))
 
-    train_mmal(model=model,
-          trainloader=trainloader,
-          testloader=testloader,
-          criterion=criterion,
-          optimizer=optimizer,
-          scheduler=scheduler,
-          save_path=save_path,
-          num_epochs=num_epochs,
-          save_interval=save_interval,
-          use_sam_optim=use_sam_optim,
-          cuda_id=cuda_id)
+    model = MainStreamModel(input_size==[input_size, input_size])
+    model = model.to(device)
+    # model = DistributedMainStreamModel()
+    train_mainstream_model(model,
+                            trainloader,
+                            testloader,
+                            criterion,
+                            optimizer,
+                            scheduler,
+                            cuda_id,
+                            num_epochs)
+    # train_mmal(model=model,
+    #       trainloader=trainloader,
+    #       testloader=testloader,
+    #       criterion=criterion,
+    #       optimizer=optimizer,
+    #       scheduler=scheduler,
+    #       save_path=save_path,
+    #       num_epochs=num_epochs,
+    #       save_interval=save_interval,
+    #       use_sam_optim=use_sam_optim,
+    #       cuda_id=cuda_id)
 
 
 if __name__ == '__main__':
