@@ -2,10 +2,11 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from models.MMALNet import resnet
-from config import pretrain_path, coordinates_cat, iou_threshs, window_nums_sum, ratios, N_list
+from config import *
 import numpy as np
-from utils.AOLM import AOLM
+from utils.mmal_utils import AOLM
 
+DEVICE = torch.device("cuda:"+str(cuda_id) if torch.cuda.is_available() else "cpu")
 
 def nms(scores_np, proposalN, iou_threshs, coordinates):
     if not (type(scores_np).__module__ == 'numpy' and len(scores_np.shape) == 2 and scores_np.shape[1] == 1):
@@ -49,7 +50,7 @@ class APPM(nn.Module):
         super(APPM, self).__init__()
         self.avgpools = [nn.AvgPool2d(ratios[i], 1) for i in range(len(ratios))]
 
-    def forward(self, proposalN, x, ratios, window_nums_sum, N_list, iou_threshs, DEVICE='cuda'):
+    def forward(self, proposalN, x, ratios, window_nums_sum, N_list, iou_threshs, DEVICE):
         batch, channels, _, _ = x.size()
         avgs = [self.avgpools[i](x) for i in range(len(ratios))]
 
@@ -87,7 +88,7 @@ class MainNet(nn.Module):
         self.rawcls_net = nn.Linear(channels, num_classes)
         self.APPM = APPM()
 
-    def forward(self, x, epoch, batch_idx, status='test', DEVICE='cuda'):
+    def forward(self, x, epoch, batch_idx, status='test', DEVICE=DEVICE):
         fm, embedding, conv5_b = self.pretrained_model(x)
         batch_size, channel_size, side_size, _ = fm.shape
         assert channel_size == 2048

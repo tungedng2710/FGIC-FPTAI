@@ -2,28 +2,31 @@ from utils.indices2coordinates import indices2coordinates
 from utils.compute_window_nums import compute_window_nums
 import numpy as np
 
-CUDA_VISIBLE_DEVICES = '0'  # The current version only supports one GPU training
+cuda_id = 2
 
 save_checkpoint = True
-set = 'Aircraft'  # Different dataset with different
-model_name = ''
-
-batch_size = 4
-vis_num = batch_size  # The number of visualized images in tensorboard
-eval_trainset = False  # Whether or not evaluate trainset
-save_interval = 5
-max_checkpoint_num = 10
-end_epoch = 40
-init_lr = 0.001
-lr_milestones = [60, 100]
-lr_decay_rate = 0.1
-weight_decay = 1e-4
+loss_function_name = "CrossEntropyLoss"
+model_name = 'MMAL'
 stride = 32
 channels = 2048
 input_size = 448
 
-# The pth path of pretrained model
-pretrain_path = './models/pretrained/resnet50-19c8e357.pth'
+batch_size = 4
+vis_num = batch_size 
+eval_trainset = False  
+save_interval = 5
+max_checkpoint_num = 10
+num_epochs = 40
+
+# Optimizer config
+optim_name = "SGD"
+init_lr = 0.001
+lr_milestones = [60, 100]
+lr_decay_rate = 0.1
+weight_decay = 1e-4
+
+# The path of pretrained model
+pretrain_path = '/home/ubuntu/tungn197/AirCraft_Cls/MMAL-Net/models/pretrained/resnet50-19c8e357.pth'
 
 N_list = [3, 2, 1]
 proposalN = sum(N_list)  # proposal window num
@@ -34,7 +37,7 @@ ratios = [[6, 6], [5, 7], [7, 5],
             [10, 10], [9, 11], [11, 9], [8, 12], [12, 8]]
 
 model_path = './checkpoint/aircraft'      # pth save path
-root = '/home/tungedng2710/python/fpt-ai-residency/test/fgvc-aircraft-2013b'  # dataset path
+root_dir = '/home/ubuntu/tungn197/AirCraft_Cls/fgvc-aircraft-2013b'  # dataset path
 num_classes = 100
 
 

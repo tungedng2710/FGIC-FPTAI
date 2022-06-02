@@ -7,25 +7,26 @@ from config import max_checkpoint_num, proposalN, eval_trainset, save_checkpoint
 from utils.eval_model import eval
 
 def train_mmal(model,
-                trainloader,
-                testloader,
-                criterion,
-                optimizer,
-                scheduler,
-                save_path,
-                start_epoch,
-                end_epoch,
-                save_interval,
-                use_sam_optim):
-    for epoch in range(start_epoch + 1, end_epoch + 1):
+               trainloader,
+               testloader,
+               criterion,
+               optimizer,
+               scheduler,
+               save_path,
+               num_epochs,
+               save_interval,
+               use_sam_optim,
+               cuda_id):
+    device = torch.device("cuda:"+str(cuda_id) if torch.cuda.is_available() else "cpu")
+    for epoch in range(num_epochs):
         model.train()
-        print('Training %d epoch' % epoch)
-
+        print('Epoch ', epoch+1)
+        print('Training...')
         lr = next(iter(optimizer.param_groups))['lr']
 
         for i, data in enumerate(tqdm(trainloader)):
             images, labels = data
-            images, labels = images.cuda(), labels.cuda()
+            images, labels = images.to(device), labels.to(device)
 
             optimizer.zero_grad()
             proposalN_windows_score, proposalN_windows_logits, indices, \
