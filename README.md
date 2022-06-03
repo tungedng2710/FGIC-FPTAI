@@ -22,4 +22,4 @@ python main.py
 For more configurations, pay attention to ```config.py``` and the comment inside.
 
 ## Pretrained model
-[ZF4444](https://github.com/ZF4444) provide the checkpoint model trained by ourselves, you can download if from [here](https://drive.google.com/file/d/1-LD1Jz6Dh-P6Ibtl17scfrTFQTrW4Zy3/view) for FGVC-Aircraft. You should put it under **weights/pretrained** folder.
+[ZF4444](https://github.com/ZF4444) provide the checkpoint model trained (ResNet-50), you can download it from [here](https://drive.google.com/file/d/1-LD1Jz6Dh-P6Ibtl17scfrTFQTrW4Zy3/view) for FGVC-Aircraft. You should put it under **weights/pretrained** folder.
